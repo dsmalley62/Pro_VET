@@ -3,7 +3,7 @@
 __author__ = "David M. Smalley"
 __email__  = "dsmalley62@yahoo.com"
 
-
+import matplotlib.pyplot as plt
 
 import tkinter as tk
 from tkinter import *
@@ -20,10 +20,11 @@ import matplotlib.backends.backend_pdf
 
 # %config InlineBackend.figure_format = 'retina'
 
+
 import matplotlib as mpl
 mpl.rcParams['figure.dpi'] = 150
 mpl.rcParams['savefig.dpi'] = 300
-
+# Test
 # Set the warning threshold to 50 figures
 plt.rcParams['figure.max_open_warning'] = 50
 
