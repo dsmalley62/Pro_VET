@@ -88,7 +88,7 @@ def get_base_run_file_names(app):
         "Manually Created": "_peptides.csv",
         "MaxQuant": "_peptides.txt",
         "Proteome Discoverer": "_PeptideGroups.xlsx",
-        "MSFragger": "_peptides.tsv"
+        "MSFragger": "_peptide.tsv"
     }
 
     suffix = suffix_map.get(app.input_type, "")
@@ -101,24 +101,7 @@ def get_base_run_file_names(app):
 # SORT BASE RUN FIRST
 # ----------------------------
 
-def old_sort_base_run_first(app):
 
-    if not app.base_run_name:
-        return app
-
-    base_name = app.base_run_name
-
-    def custom_sort_key(item):
-        return (0 if item == base_name else 1, item)
-
-    combined = list(zip(app.peptide_file_names, app.peptide_files, app.peptide_groups))
-
-    sorted_combined = sorted(combined, key=lambda x: custom_sort_key(x[0]))
-
-    # unzip
-    app.peptide_file_names, app.peptide_files, app.peptide_groups = map(list, zip(*sorted_combined))
-
-    return app
 
 
 def sort_base_run_first(app):
@@ -197,35 +180,35 @@ def testing(app):
     app.rank='77' 
     app.accession='P4242' 
     app.results_file_name='test_001_folder' 
-    app.base_run_file_path = 'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_data/1mg_3_A_1_PeptideGroups.xlsx'
+    app.base_run_file_path = 'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_test/1mg_3_A_1_PeptideGroups.xlsx'
     app.fasta_files=['C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/Human.fasta']
     """
-    app.protein_files  =['C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_data/1mg_1_A_1_Proteins.xlsx', 
-                         'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_data/1mg_1_A_2_Proteins.xlsx', 
-                         'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_data/1mg_1_A_3_Proteins.xlsx', 
-                         'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_data/1mg_2_A_1_Proteins.xlsx', 
-                         'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_data/1mg_2_A_2_Proteins.xlsx', 
-                         'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_data/1mg_2_A_3_Proteins.xlsx', 
-                         'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_data/1mg_3_A_1_Proteins.xlsx', 
-                         'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_data/1mg_3_A_2_Proteins.xlsx', 
-                         'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_data/1mg_3_A_3_Proteins.xlsx']
-    app.peptide_files= [{'path': 'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_data/1mg_1_A_1_PeptideGroups.xlsx', 'group': '3'}, 
-                        {'path': 'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_data/1mg_1_A_2_PeptideGroups.xlsx', 'group': '3'}, 
-                        {'path': 'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_data/1mg_1_A_3_PeptideGroups.xlsx', 'group': '3'}, 
-                        {'path': 'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_data/1mg_2_A_1_PeptideGroups.xlsx', 'group': '2'}, 
-                        {'path': 'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_data/1mg_2_A_2_PeptideGroups.xlsx', 'group': '2'}, 
-                        {'path': 'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_data/1mg_2_A_3_PeptideGroups.xlsx', 'group': '2'}, 
-                        {'path': 'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_data/1mg_3_A_1_PeptideGroups.xlsx', 'group': '5'}, 
-                        {'path': 'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_data/1mg_3_A_2_PeptideGroups.xlsx', 'group': '5'}, 
-                        {'path': 'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_data/1mg_3_A_3_PeptideGroups.xlsx', 'group': '5'}]  
+    app.protein_files  =['C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_test/1mg_1_A_1_Proteins.xlsx', 
+                         'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_test/1mg_1_A_2_Proteins.xlsx', 
+                         'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_test/1mg_1_A_3_Proteins.xlsx', 
+                         'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_test/1mg_2_A_1_Proteins.xlsx', 
+                         'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_test/1mg_2_A_2_Proteins.xlsx', 
+                         'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_test/1mg_2_A_3_Proteins.xlsx', 
+                         'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_test/1mg_3_A_1_Proteins.xlsx', 
+                         'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_test/1mg_3_A_2_Proteins.xlsx', 
+                         'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_test/1mg_3_A_3_Proteins.xlsx']
+    app.peptide_files= [{'path': 'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_test/1mg_1_A_1_PeptideGroups.xlsx', 'group': '3'}, 
+                        {'path': 'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_test/1mg_1_A_2_PeptideGroups.xlsx', 'group': '3'}, 
+                        {'path': 'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_test/1mg_1_A_3_PeptideGroups.xlsx', 'group': '3'}, 
+                        {'path': 'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_test/1mg_2_A_1_PeptideGroups.xlsx', 'group': '2'}, 
+                        {'path': 'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_test/1mg_2_A_2_PeptideGroups.xlsx', 'group': '2'}, 
+                        {'path': 'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_test/1mg_2_A_3_PeptideGroups.xlsx', 'group': '2'}, 
+                        {'path': 'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_test/1mg_3_A_1_PeptideGroups.xlsx', 'group': '5'}, 
+                        {'path': 'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_test/1mg_3_A_2_PeptideGroups.xlsx', 'group': '5'}, 
+                        {'path': 'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_test/1mg_3_A_3_PeptideGroups.xlsx', 'group': '5'}]  
     """
     # Short version for loading less data during testing
-    app.protein_files  =['C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_data/1mg_1_A_1_Proteins.xlsx', 
-                         'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_data/1mg_1_A_2_Proteins.xlsx', 
-                         'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_data/1mg_1_A_3_Proteins.xlsx']
-    app.peptide_files= [{'path': 'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_data/1mg_1_A_1_PeptideGroups.xlsx', 'group': '3'}, 
-                        {'path': 'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_data/1mg_1_A_2_PeptideGroups.xlsx', 'group': '3'}, 
-                        {'path': 'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_data/1mg_1_A_3_PeptideGroups.xlsx', 'group': '3'}]  
+    #app.protein_files  =['C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_test/1mg_1_A_1_Proteins.xlsx', 
+    #                     'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_test/1mg_1_A_2_Proteins.xlsx', 
+    #                     'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_test/1mg_1_A_3_Proteins.xlsx']
+    #app.peptide_files= [{'path': 'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_test/1mg_1_A_1_PeptideGroups.xlsx', 'group': '3'}, 
+    #                    {'path': 'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_test/1mg_1_A_2_PeptideGroups.xlsx', 'group': '3'}, 
+    #                    {'path': 'C:/Users/dsmal/DMS/Projects/M03_Pro_Vet/data/NIST_test/1mg_1_A_3_PeptideGroups.xlsx', 'group': '3'}]  
     
     app.MW_var=1 
     app.peptide_length_var=1
@@ -333,7 +316,7 @@ def initial_processing(app):
         print("Error importing fasta files:", e)
     
     try:
-        peptide_input_df = peptide_import_function(app)
+        peptide_input_df, mods_input_df = peptide_import_function(app)
         print ("shape of peptide_input_df: ", peptide_input_df.shape)
         print(peptide_input_df.head())
     except Exception as e:
@@ -368,8 +351,12 @@ def initial_processing(app):
 
     # Calculating Summary Information for Each Group
     print("Calculating summary information for each group...")
+    print("Point A", app.peptide_file_names)
+    print("Point A2 :", protein_input_df)
+    print("Point A3: ", peptide_input_df)
     summary_info_df = calc_group_info_basic(app.peptide_file_names, protein_input_df, peptide_input_df)
     print(summary_info_df)   
+    print("point D:")
     save_dataframe_with_counter(summary_info_df, 
                                 app.results_subfolder_path + "/" + app.results_file_name + "_summary_info", 
                                 file_format='csv')
@@ -409,6 +396,31 @@ def initial_processing(app):
     
     print("protein_and_peptide_figure and PSM_figure has been saved.")
     
+    # Methione Oxidation
+    met_df = create_oxMet_df(mods_input_df, group_dict, app)
+    # per_oxid is percent oxidation.
+    met_df['per_oxid'] = 100 * met_df['ox_Met']/met_df['all_Met']
+    print(met_df)
+    met_path_name = app.results_subfolder_path + "/" + app.results_file_name + "_met_ox"
+    save_dataframe_with_counter(met_df, met_path_name, 
+                                file_format='csv')
+    
+    met_stats_df = (met_df.groupby("group")["per_oxid"]
+      .agg(mean="mean", std="std")
+      .reset_index()
+    )
+    met_stats_df["std"] = met_stats_df["std"].fillna(0)
+    print(met_stats_df)
+    met_stats_path_name = app.results_subfolder_path + "/" + app.results_file_name + "_met_ox_stats"
+    save_dataframe_with_counter(met_stats_df, met_stats_path_name, 
+                                file_format='csv')
+
+    Met_Ox_fig = plots_for_Met_oxid(met_df)
+    save_figure_unique(Met_Ox_fig, app.results_file_name + "_Met_Ox_figure", 
+                       directory=app.results_subfolder_path, format="png")
+
+
+    
     print(f"app.processing_method is: {app.processing_method}")
 
     if app.analysis_type == "multiple_proteins":
@@ -416,14 +428,16 @@ def initial_processing(app):
         top_N_processing_pipeline(app, fasta_df, peptide_input_df, 
                 protein_input_df, group_dict, protein_PSM_df,
                 summary_info_df = summary_info_df, summary_stats_df = summary_stats_df, 
-                protein_and_peptide_figure=protein_and_peptide_figure, PSM_figure=PSM_figure)
+                protein_and_peptide_figure=protein_and_peptide_figure, PSM_figure=PSM_figure,
+                met_df = met_df, met_stats_df = met_stats_df, Met_Ox_fig = Met_Ox_fig)
 
     else:
         print("The Single Protein Processing Pipeline has been selected")
         single_protein_processing_pipeline(app, fasta_df, peptide_input_df, 
                 protein_input_df, group_dict, protein_PSM_df,
                 summary_info_df = summary_info_df, summary_stats_df = summary_stats_df, 
-                protein_and_peptide_figure = protein_and_peptide_figure, PSM_figure = PSM_figure)        
+                protein_and_peptide_figure = protein_and_peptide_figure, PSM_figure = PSM_figure,
+                met_df = met_df, met_stats_df = met_stats_df, Met_Ox_fig = Met_Ox_fig)        
 
     print("Processing complete.")
 
@@ -440,27 +454,8 @@ def initial_processing(app):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 """
-import os
+
 
 # Get Fasta file names alone (# remove path from fasta file names)
 def getting_fasta_file_names(app):

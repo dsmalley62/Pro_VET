@@ -11,6 +11,7 @@ from tkinter import filedialog, ttk, messagebox
 from turtle import left
 import customtkinter
 import os
+import time
 from PIL import Image, ImageTk
 import sys
 from processing import *

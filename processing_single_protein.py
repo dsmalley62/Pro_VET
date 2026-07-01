@@ -1,8 +1,7 @@
 import random
 import re
 from utils import calculation_alternatives, create_similarity_matrix, getting_row_means_and_sds, make_coverage_plots, \
-    save_dataframe_with_counter, coverage_df_by_AA, save_figure_unique, create_similarity_matrix, \
-    plot_runs_and_stats
+    save_dataframe_with_counter, coverage_df_by_AA, save_figure_unique, plot_runs_and_stats
 from results_viewer import ResultsViewer_Single_Protein
 
 
@@ -81,7 +80,8 @@ def processing_alternatives(protein_PSM_df, app): #processing_method, accession,
 def single_protein_processing_pipeline(app, fasta_df, peptide_input_df, 
                                        protein_input_df, group_dict, protein_PSM_df, 
                                        summary_info_df, summary_stats_df, 
-                                       protein_and_peptide_figure, PSM_figure): 
+                                       protein_and_peptide_figure, PSM_figure,
+                                       met_df, met_stats_df, Met_Ox_fig): 
     print("*********************************************************")
     print("Starting single protein processing pipeline...")
     print(f"Single Protein Processing Method is: {app.processing_method}")
@@ -169,6 +169,9 @@ def single_protein_processing_pipeline(app, fasta_df, peptide_input_df,
                                    PSM_figure = PSM_figure,
                                    calculations_df=calculations_df, 
                                    POI_df=POI_df,
+                                   met_df = met_df,
+                                   met_stats_df = met_stats_df,
+                                   Met_Ox_fig = Met_Ox_fig,
                                    similarity_matrix=similarity_matrix,
                                    similarity_stats=similarity_stats,
                                    coverage_df=coverage_df,
