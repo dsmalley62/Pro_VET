@@ -15,11 +15,6 @@ from matplotlib.patches import Rectangle
 import seaborn as sns
 
 
-# For Data Visualization
-import matplotlib.pyplot as plt
-from matplotlib.patches import Rectangle
-import seaborn as sns
-
 # For processing FASTA files
 from Bio.SeqRecord import SeqRecord
 from Bio import SeqIO
@@ -69,8 +64,11 @@ def truncate_after_Area(col_name):
         return col_name
 
 
+
+
 def peptide_import_function(app):
     all_peptides_input_df = pd.DataFrame()
+    all_mods_input_df = pd.DataFrame()
     if (app.input_type == "Manually Created"):
         print('"Manually Created" Import Method being used for Peptides.')
         rename_dict = {'Sequence': 'seq', '# PSMs': 'PSM', 'PSMs': 'PSM', 'Protein': 'protein',
@@ -80,30 +78,34 @@ def peptide_import_function(app):
         counter_i = 0  # zero a counter
         number_of_input_files = len(app.peptide_file_names)
         print(f"number of input files is: {number_of_input_files}")
+        print("Point G")
         for sample_i, path_name_i in zip(app.peptide_file_names, app.peptide_files):
             print(path_name_i['path'])
             df_i = pd.read_csv(path_name_i['path'])
             #print(df_i.columns)
             df_i.rename(columns = rename_dict, inplace=True)
             df_i = df_i.reset_index()
-            print(df_i.columns)
-            df_i = df_i[['seq', 'accession', 'intensity', 'PSM']]
-            df_i = df_i.groupby('seq').agg(PSM = ('PSM', 'sum'), accession = ('accession', 'first'),
-                                   intensity =('intensity', 'sum')).reset_index()
-            df_i['sample'] = sample_i
-            all_peptides_input_df = pd.concat([all_peptides_input_df, df_i])
+            print("Point F: ", df_i.columns)
+            df_i = df_i[['seq', 'mods', 'accession', 'intensity', 'PSM']]
+            df_i_2 = df_i.groupby('seq').agg(PSM = ('PSM', 'sum'), accession = ('accession', 'first'),
+                                   intensity =('intensity', 'sum')).reset_index().copy()
+            mods_i_df = df_i[['seq', 'mods', 'accession', 'PSM']].copy() 
+            df_i_2['sample'] = sample_i
+            mods_i_df['sample'] = sample_i
+            all_peptides_input_df = pd.concat([all_peptides_input_df, df_i_2])
+            all_mods_input_df = pd.concat([all_mods_input_df, mods_i_df])
             counter_i = counter_i + 1
             if counter_i % 5 == 0:
                 print(f"Processing file {counter_i} of {number_of_input_files}")
         print("Done importing files")
-        return all_peptides_input_df
+        return all_peptides_input_df, all_mods_input_df
     elif (app.input_type == "MaxQuant"):
         ####### MaxQuant Results have no "mods Column
         print('"MaxQuant" Import method being used for peptides.')
         rename_dict = {'MS/MS Count': 'PSM', 'Proteins': 'accession',
                'Sequence': 'seq', 'Seq': 'seq', '# Peptides': 'peptides', 'Peptides': 'peptides',
                'Master Protein Accessions': 'accession', 'Modifications': 'mods', 'Mods': 'mods', 
-               'Area': 'intensity', 'area': 'intensity', 'Intensity': 'intensity'}
+               'Area': 'intensity', 'area': 'intensity', 'Intensity': 'intensity', 'Oxidation (M) site IDs': 'mods'}
         counter_i = 0  # zero a counter
         number_of_input_files = len(app.peptide_file_names)
         print(f"number of input files is: {number_of_input_files}")
@@ -113,19 +115,23 @@ def peptide_import_function(app):
             #df_tab = pd.read_csv('data.txt', sep='\t')
             df_i.rename(columns = rename_dict, inplace = True)
             #df_i = df_i[['seq', 'mods', 'accession', 'intensity', 'PSM']]
-            df_i = df_i[['seq', 'accession', 'intensity', 'PSM']]
-            df_i = df_i.groupby('seq').agg(PSM = ('PSM', 'sum'), accession = ('accession', 'first'),
-                                   intensity =('intensity', 'sum')).reset_index()
-            df_i['sample'] = sample_i
-            all_peptides_input_df = pd.concat([all_peptides_input_df, df_i])
+            df_i = df_i[['seq', 'mods', 'accession', 'intensity', 'PSM']]
+            df_i_2 = df_i.groupby('seq').agg(PSM = ('PSM', 'sum'), accession = ('accession', 'first'),
+                                   intensity =('intensity', 'sum')).reset_index().copy()
+            mods_i_df = df_i[['seq', 'mods', 'accession', 'PSM']].copy()
+            df_i_2['sample'] = sample_i
+            mods_i_df['sample'] = sample_i
+            all_peptides_input_df = pd.concat([all_peptides_input_df, df_i_2])
+            all_mods_input_df = pd.concat([all_mods_input_df, mods_i_df])
             counter_i = counter_i + 1
             if counter_i % 5 == 0:
                 print(f"Processing file {counter_i} of {number_of_input_files}")
         print("Done importing files")
-        return all_peptides_input_df
+        return all_peptides_input_df, all_mods_input_df
     elif (app.input_type == "Proteome Discoverer"):
         print('"Proteome Discoverer" method being uses for peptides.')
         rename_dict = { 'Sequence': 'seq',
+                        'Modifications': 'mods',
                         'Master Protein Accessions' : 'accession',
                        'Description': 'description',
                         'apQuant Area': 'intensity',
@@ -141,16 +147,19 @@ def peptide_import_function(app):
             df_i = df_i.rename(columns=lambda col: truncate_after_Area(col))
             df_i.rename(columns = rename_dict, inplace=True)
             df_i = df_i.reset_index()
-            df_i = df_i[['seq', 'accession', 'intensity', 'PSM']]
-            df_i = df_i.groupby('seq').agg(PSM = ('PSM', 'sum'), accession = ('accession', 'first'),
-                                   intensity =('intensity', 'sum')).reset_index()
-            df_i['sample'] = sample_i
-            all_peptides_input_df = pd.concat([all_peptides_input_df, df_i])
+            df_i = df_i[['seq', 'mods', 'accession', 'intensity', 'PSM']]
+            df_i_2 = df_i.groupby('seq').agg(PSM = ('PSM','sum'), accession = ('accession', 'first'),
+                                   intensity =('intensity', 'sum')).reset_index().copy()
+            mods_i_df = df_i[['seq', 'mods', 'accession', 'PSM']].copy() 
+            df_i_2['sample'] = sample_i
+            mods_i_df['sample'] = sample_i
+            all_peptides_input_df = pd.concat([all_peptides_input_df, df_i_2])
+            all_mods_input_df = pd.concat([all_mods_input_df, mods_i_df])
             counter_i = counter_i + 1
             if counter_i % 5 == 0:
                 print(f"Processing file {counter_i} of {number_of_input_files}")
         print("Done importing files")
-        return all_peptides_input_df       
+        return all_peptides_input_df, all_mods_input_df       
         
     elif(app.input_type == "MSFragger"):
         print('"MSFragger" Import Method being used for Peptides.')
@@ -167,20 +176,25 @@ def peptide_import_function(app):
             df_i = pd.read_csv(path_name_i['path'], sep='\t')
             df_i.rename(columns = rename_dict, inplace=True)
             df_i = df_i.reset_index()
-            df_i = df_i[['seq', 'accession', 'intensity', 'PSM']]
-            df_i = df_i.groupby('seq').agg(PSM = ('PSM', 'sum'), accession = ('accession', 'first'),
-                                   intensity =('intensity', 'sum')).reset_index()
-            df_i['sample'] = sample_i
-            all_peptides_input_df = pd.concat([all_peptides_input_df, df_i])
+            df_i = df_i[['seq', 'mods', 'accession', 'intensity', 'PSM']]
+            df_i_2 = df_i.groupby('seq').agg(PSM = ('PSM', 'sum'), accession = ('accession', 'first'),
+                                   intensity =('intensity', 'sum')).reset_index().copy()
+            mods_i_df = df_i[['seq', 'mods', 'accession', 'PSM']].copy()
+            df_i_2['sample'] = sample_i
+            mods_i_df['sample'] = sample_i
+            all_peptides_input_df = pd.concat([all_peptides_input_df, df_i_2])
+            all_mods_input_df = pd.concat([all_mods_input_df, mods_i_df])
             counter_i = counter_i + 1
             if counter_i % 5 == 0:
                 print(f"Processing file {counter_i} of {number_of_input_files}")
         print("Done importing files")
-        return all_peptides_input_df
+        return all_peptides_input_df, all_mods_input_df
     
     else:
         print("Method not recognized")
 ####### MaxQuant Results have no "mods Column in peptide results
+
+
 
 
 # Calculating means and stds for groups
@@ -338,6 +352,7 @@ def calc_group_info_basic(peptide_file_names, protein_input_df, peptide_input_df
         number_of_peptides = len(peptide_input_df_i)
         number_of_PSM =  peptide_input_df_i['PSM'].sum()
         list_i =[sample_i, number_of_protein_groups, number_of_peptides, number_of_PSM] 
+        print("list_i: ", list_i)
         columns=['sample', 'Protein Groups', 'Peptides', 'PSM']
         df_i = pd.DataFrame([list_i], columns=columns)
         df_summary = pd.concat([df_summary, df_i], ignore_index=True)
@@ -761,7 +776,7 @@ def calculation_alternatives(POI_df, app):
     return(pivoted_POI_df) 
 
 
-def create_similarity_matrix(df):
+def really_old_create_similarity_matrix(df):
     POI_len = len(df)
     df_calc = df
     runs_to_compare = df.columns.drop(['AA_pos', 'AA', 'rand'])
@@ -791,6 +806,96 @@ def create_similarity_matrix(df):
             df_similarity.loc[run_x, run_y] = scaled_x_y_similarity
             df_similarity.loc[run_y, run_x] = scaled_x_y_similarity 
     return(df_similarity)
+
+
+def old_create_similarity_matrix(calc_df):
+    POI_len = len(calc_df)
+    calc_df = calc_df.drop(columns = ['AA_pos', 'AA', 'rand'])
+
+    runs_to_compare = list(calc_df.columns)
+    print(runs_to_compare)
+    print(type(runs_to_compare))
+    
+    # Define the dimensions of the DataFrames
+    number_of_rows = len(runs_to_compare)
+    print('number_of_rows: ', number_of_rows)
+    number_of_columns = len(runs_to_compare)
+    
+    # Create a NumPy array filled with ones for the similarity index. 
+    np_similarity = np.ones((number_of_rows, number_of_columns))
+
+    # Convert the NumPy arrays to a Pandas DataFrame
+    df_similarity = pd.DataFrame(np_similarity)
+
+    # Label the rows and columns with sample information.
+    df_similarity.columns = runs_to_compare
+    df_similarity.index = pd.Index(runs_to_compare, name='sample')
+
+    for run_x in runs_to_compare:
+        # Treat each run as a base run, one at a time
+        calc_df['rand_run_x'] = np.random.permutation(calc_df[run_x])
+        for run_y in runs_to_compare:
+            x_y_similarity = 1 - (abs(calc_df[run_y] - calc_df[run_x])).sum()/POI_len
+            random_similarity = 1 - (abs(calc_df['rand_run_x'] - calc_df[run_x])).sum()/POI_len
+            scaled_x_y_similarity = (x_y_similarity - random_similarity)/(1.0000000001-random_similarity)
+
+            df_similarity.loc[run_x, run_y] = scaled_x_y_similarity
+            #df_similarity.loc[run_y, run_x] = scaled_x_y_similarity 
+    return(df_similarity)        
+
+
+def create_similarity_matrix(calc_df):
+    POI_len = len(calc_df)
+    if POI_len < 10:
+        print("Error - POI length is less than 10!!!! ")
+        sys.exit("Error: Program stopped because a POI is less than 10.")
+    calc_df = calc_df.drop(columns = ['AA_pos', 'AA', 'rand'])
+    # calc_df = calc_df.drop(columns = ['Unnamed: 0'])
+    # print(calc_df.columns)
+    
+    runs_to_compare = list(calc_df.columns)
+    #print(runs_to_compare)
+    #print(type(runs_to_compare))
+    
+    # Define the dimensions of the DataFrames
+    number_of_rows = len(runs_to_compare)
+    # print('number_of_rows: ', number_of_rows)
+    number_of_columns = len(runs_to_compare)
+    # print('number_of_columns: ', number_of_columns)
+
+    # Create a NumPy array filled with ones for the similarity index. 
+    np_similarity = np.ones((number_of_rows, number_of_columns))
+
+    # Convert the NumPy arrays to a Pandas DataFrame
+    df_similarity = pd.DataFrame(np_similarity)
+
+    # Label the rows and columns with sample information.
+    df_similarity.columns = runs_to_compare
+    df_similarity.index = pd.Index(runs_to_compare, name='sample')
+
+    # print(df_similarity)
+
+    for run_x in runs_to_compare:
+        # Treat each run as a base run, one at a time
+        calc_df['rand_run_x'] = np.random.permutation(calc_df[run_x])
+        for run_y in runs_to_compare:
+            x_y_similarity = 1 - (abs(calc_df[run_y] - calc_df[run_x])).sum()/POI_len
+            random_similarity = 1 - (abs(calc_df['rand_run_x'] - calc_df[run_x])).sum()/POI_len
+            scaled_x_y_similarity = (x_y_similarity - random_similarity)/(1.0000000001-random_similarity)
+
+            df_similarity.loc[run_x, run_y] = scaled_x_y_similarity
+            #df_similarity.loc[run_y, run_x] = scaled_x_y_similarity 
+    
+    # To prevent extemely small or large values
+    df_similarity[(df_similarity > 1) | (df_similarity < 0)] = 0
+
+    return(df_similarity)
+    
+    
+
+
+
+
 
 
 def save_figure_unique(fig, base_filename, directory=".", format="png"):
@@ -1276,20 +1381,20 @@ def plot_peptide_length_by_run(peptide_length_df, group_dict):
 
 
 
-def plot_peptide_length_by_group(peptide_length_df, group_dict):
+def old_plot_peptide_length_by_group(peptide_length_stats_df):
     fig, ax = plt.subplots(figsize=(8, 5))
 
     # Get unique groups and peptide lengths
-    groups = peptide_length_df["group"].unique()
-    pept_lens = peptide_length_df["pept_len"].unique()
+    groups = peptide_length_stats_df["group"].unique()
+    pept_lens = peptide_length_stats_df["pept_len"].unique()
 
     # Draw barplot WITHOUT seaborn error bars
     sns.barplot(
-        data=peptide_length_df,
+        data=peptide_length_stats_df,
         x="pept_len",
         y="mean",
         hue="group",
-        errorbar=None,
+        errorbar = none,
         ax=ax
     )
 
@@ -1315,6 +1420,40 @@ def plot_peptide_length_by_group(peptide_length_df, group_dict):
             ecolor="black",
             capsize=2,
             linewidth=0.6
+        )
+
+    ax.set_xlabel("Peptide Length")
+    ax.set_ylabel("Number of Peptides")
+    ax.set_title("Peptide Length Distribution by Group")
+
+    fig.tight_layout()
+    return fig
+
+
+def plot_peptide_length_by_group(peptide_length_stats_df):
+    fig, ax = plt.subplots(figsize=(8, 5))
+
+    sns.barplot(
+        data=peptide_length_stats_df,
+        x="pept_len",
+        y="mean",
+        hue="group",
+        errorbar=None,   # disable seaborn error bars
+        ax=ax
+    )
+
+    # Add custom error bars
+    for bar, (_, row) in zip(ax.patches, peptide_length_stats_df.iterrows()):
+        x = bar.get_x() + bar.get_width() / 2
+        y = row["mean"]
+
+        ax.errorbar(
+            x=x,
+            y=y,
+            yerr=row["std"],
+            fmt="none",
+            ecolor="black",
+            capsize=3
         )
 
     ax.set_xlabel("Peptide Length")
@@ -1454,4 +1593,115 @@ def plot_property_by_group(df, property, group_dict, AA_index = False, property_
     fig.tight_layout()
 
     return(fig)
+
+def create_oxMet_df(mods_input_df, group_dict, app): 
+    # invert the group_dict
+    # sample_to_group = {sample: group for group, samples in group_dict.items() for sample in samples}
+    # mods_input_df["group"] = mods_input_df["sample"].map(sample_to_group)
+    all_samples = set(mods_input_df['sample'])
+    ox_Met_df = pd.DataFrame()
+    if (app.input_type == 'Proteome Discoverer') or (app.input_type == 'Manually Created') :   
+        for sample_i in all_samples:
+            sample_i_df = mods_input_df[mods_input_df['sample'] == sample_i]
+            Met_containing_df_i = sample_i_df[sample_i_df['seq'].str.contains('M', na = False)].reset_index()
+            
+            num_of_Met_i = Met_containing_df_i['seq'].str.count("M").sum()
+            mods_only_df_i = Met_containing_df_i[Met_containing_df_i['mods'].str.contains('Oxid', na = False)].reset_index()
+            # The number of oxidized Met 
+            num_of_ox_Met_i = mods_only_df_i["mods"].str.count("1xOxidation").sum() + \
+                2 * mods_only_df_i["mods"].str.count("2xOxidation").sum() +  \
+                3 * mods_only_df_i["mods"].str.count("3xOxidation").sum() 
+            ox_Met_df_i = pd.DataFrame(columns=['sample', 'ox_Met', 'all_Met'])
+            ox_Met_df_i.loc[len(ox_Met_df_i)] = [sample_i, num_of_ox_Met_i, num_of_Met_i]
+            ox_Met_df = pd.concat([ox_Met_df, ox_Met_df_i])
+    if app.input_type == 'MaxQuant': 
+        for sample_i in all_samples:
+            sample_i_df = mods_input_df[mods_input_df['sample'] == sample_i]
+            Met_containing_df_i = sample_i_df[sample_i_df['seq'].str.contains('M', na = False)].reset_index()
+            
+            num_of_Met_i = Met_containing_df_i['seq'].str.count("M").sum()
+            mods_only_df_i = Met_containing_df_i[Met_containing_df_i['mods'].str.contains('Oxid', na = False)].reset_index()
+            # The number of oxidized Met = number of rows of the data frame + number of semicolon (;)
+            num_of_ox_Met_i = len(mods_only_df_i) + mods_only_df_i["mods"].str.count(";").sum()
+            ox_Met_df_i = pd.DataFrame(columns=['sample', 'ox_Met', 'all_Met'])
+            ox_Met_df_i.loc[len(ox_Met_df_i)] = [sample_i, num_of_ox_Met_i, num_of_Met_i]
+            ox_Met_df = pd.concat([ox_Met_df, ox_Met_df_i])
+    if app.input_type == 'MSFragger': 
+        for sample_i in all_samples:
+            sample_i_df = mods_input_df[mods_input_df['sample'] == sample_i]
+            Met_containing_df_i = sample_i_df[sample_i_df['seq'].str.contains('M', na = False)].reset_index()
+            
+            num_of_Met_i = Met_containing_df_i['seq'].str.count("M").sum()
+            mods_only_df_i = Met_containing_df_i[Met_containing_df_i['seq'].str.contains('M', na = False)].reset_index()
+            # The number of oxidized Met = number of rows of the data frame + number of semicolon (;)
+            num_of_ox_Met_i = mods_only_df_i['mods'].str.count("M").sum()
+            ox_Met_df_i = pd.DataFrame(columns=['sample', 'ox_Met', 'all_Met'])
+            ox_Met_df_i.loc[len(ox_Met_df_i)] = [sample_i, num_of_ox_Met_i, num_of_Met_i]
+            ox_Met_df = pd.concat([ox_Met_df, ox_Met_df_i])
+    else:
+        print("There is a problem with the input type")     
+    # invert the group_dict
+    sample_to_group = {sample: group for group, samples in group_dict.items() for sample in samples}
+    ox_Met_df["group"] = ox_Met_df["sample"].map(sample_to_group)
+    return ox_Met_df
+
+
+def plots_for_Met_oxid(met_df):
+    # Calculate Means and SDs for group. 
+    group_df = (met_df.groupby("group")["per_oxid"]
+      .agg(mean="mean", std="std")
+      .reset_index()
+    )
+    group_df["std"] = group_df["std"].fillna(0)
+    print(group_df)
+    
+    # Create figure with higher DPI for sharpness
+    fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(10, 6), dpi=120, constrained_layout=True)
+
+    colors = ["#1818f8", "red", '#9467bd', "#39caf2"]
+
+    # -----------------------------
+    # Oxidation of Met per sample
+    # -----------------------------
+    axs[0].bar(met_df['sample'],
+        met_df['per_oxid'],
+        color=colors[0],
+        edgecolor='black',
+        linewidth=1.0
+    )
+    axs[0].set_title('Percent Met Oxidation Per Sample', fontsize=12, weight='bold')
+    axs[0].set_xlabel('Sample')
+    axs[0].set_ylabel('Percent Met Oxidation')
+    axs[0].tick_params(axis='x', rotation=90, labelsize=8)
+
+
+    # -----------------------------
+    # Met Oxidation per group
+    # -----------------------------
+    axs[1].bar(
+        group_df['group'],
+        group_df['mean'],
+        yerr=group_df['std'],
+        capsize=6,
+        color=colors[2],
+        edgecolor='black',
+        linewidth=1.0,
+        error_kw=dict(elinewidth=1.2, capthick=1.2)
+    )
+    axs[1].set_title('Met Oxidation (%)', fontsize=12, weight='bold')
+    axs[1].set_xlabel('Group')
+    axs[1].set_ylabel('Percent Oxidation of Methionine')
+
+    
+    # -----------------------------
+    # Overall title
+    # -----------------------------
+    fig.suptitle(
+        'Summary Statistics per Sample and Group\n(PSMs)',
+        fontsize=16,
+        weight='bold'
+    )
+
+    return fig
+
 

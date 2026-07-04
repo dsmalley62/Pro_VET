@@ -66,6 +66,9 @@ class ResultsViewer_Single_Protein:
         PSM_figure,
         calculations_df,
         POI_df,
+        met_df,
+        met_stats_df,
+        Met_Ox_fig,
         similarity_matrix,
         similarity_stats,
         coverage_df,
@@ -82,6 +85,9 @@ class ResultsViewer_Single_Protein:
         PSM_figure : matplotlib.figure.Figure
         calculations_df : pd.DataFrame
         POI_df : pd.DataFrame
+        met_df : pd.DataFrame
+        met_stats_df :pd.DataFrame
+        Met_Ox_fig : matplotlib.figure.Figure
         similarity_matrix : pd.DataFrame
         similarity_stats : pd.DataFrame
         coverage_df : pd.DataFrame
@@ -95,6 +101,9 @@ class ResultsViewer_Single_Protein:
         self.PSM_figure = PSM_figure
         self.calculations_df = calculations_df
         self.POI_df = POI_df
+        self.met_df = met_df
+        self.met_stats_df = met_stats_df
+        self.Met_Ox_fig = Met_Ox_fig
         self.similarity_matrix = similarity_matrix
         self.similarity_stats = similarity_stats
         self.coverage_df = coverage_df
@@ -205,49 +214,72 @@ class ResultsViewer_Single_Protein:
         ##################################################################
         
         tk.Label(files_frame,
-            text="Similarity Index", width=25, height = 2, font=self.bold_label_font, bg ="lightgrey"
+            text="Methionine Oxidation", width=25, height = 2, font=self.bold_label_font, bg ="lightgrey"
             ).grid(row=2, column=0, padx=4, pady=4) 
+        
+        tk.Button(files_frame,
+            text="Methionine Oxidation Dataframe",
+            command=lambda: open_dataframe_window(self.met_df),
+            width=25, height = 2
+        ).grid(row=2, column=1, padx=4, pady=4)   
+        
+        tk.Button(files_frame,
+            text="Methionine Oxidation Stats",
+            command=lambda: open_dataframe_window(self.met_stats_df),
+            width=25, height = 2
+        ).grid(row=2, column=2, padx=4, pady=4)
+         
+        tk.Button(files_frame,
+            text="Met Oxidation Figure", width=25, height = 2,
+            command=lambda: show_figure_in_tk(self.results, self.Met_Ox_fig)
+        ).grid(row=2, column=3, padx=4, pady=4 )
+   
+        ##################################################################
+        
+        tk.Label(files_frame,
+            text="Similarity Index", width=25, height = 2, font=self.bold_label_font, bg ="lightgrey"
+            ).grid(row=3, column=0, padx=4, pady=4) 
         
         
         tk.Button(files_frame,
             text="Similarity Index Dataframe",
             command=lambda: open_dataframe_window(self.similarity_matrix),
             width=25, height = 2
-        ).grid(row=2, column=1, padx=4, pady=4)   
+        ).grid(row=3, column=1, padx=4, pady=4)   
         
         tk.Button(files_frame,
             text="Similarity Index Stats",
             command=lambda: open_dataframe_window(self.similarity_stats),
             width=25, height = 2
-        ).grid(row=2, column=2, padx=4, pady=4)
+        ).grid(row=3, column=2, padx=4, pady=4)
          
         tk.Button(files_frame,
             text="Similarity Figure", width=25, height = 2,
             command=lambda: show_figure_in_tk(self.results, self.similarity_figure)
-        ).grid(row=2, column=3, padx=4, pady=4 )
+        ).grid(row=3, column=3, padx=4, pady=4 )
         
         ###############################################################
         tk.Label(files_frame,
             text="Coverage Information", width=25, height = 2, font=self.bold_label_font, bg ="lightgrey"
-            ).grid(row=3, column=0, padx=4, pady=4) 
+            ).grid(row=4, column=0, padx=4, pady=4) 
         
         
         tk.Button(files_frame,
             text="Coverage Dataframe",
             command=lambda: open_dataframe_window(self.coverage_df),
             width=25, height = 2
-        ).grid(row=3, column=1, padx=4, pady=4)  
+        ).grid(row=4, column=1, padx=4, pady=4)  
 
         tk.Label(files_frame,
             text="Peptide Information", width=25, height = 2, font=self.bold_label_font, bg="lightgrey"
-            ).grid(row=4, column=0, padx=4, pady=4) 
+            ).grid(row=5, column=0, padx=4, pady=4) 
         
         
         tk.Button(files_frame,
             text="Peptide Dataframe",
             command=lambda: open_dataframe_window(self.POI_df),
             width=25, height = 2
-        ).grid(row=4, column=1, padx=4, pady=4)  
+        ).grid(row=5, column=1, padx=4, pady=4)  
 
         ###############################################
 
@@ -299,6 +331,7 @@ class ResultsViewer:
 
     def __init__(self, 
                  summary_df, summary_stats_df, protein_and_peptide_figure, PSM_figure,
+                 met_df, met_stats_df, Met_Ox_fig,
                  similarity_df, similarity_stats, similarity_table, similarity_plot,
                  AA_df,AA_figure, AA_stats_df, AA_stats_figure,
                  AA_type_df, AA_type_figure, AA_type_stats_df, AA_type_stats_figure,
@@ -341,6 +374,9 @@ class ResultsViewer:
         self.summary_stats_df = summary_stats_df
         self.protein_and_peptide_figure = protein_and_peptide_figure
         self.PSM_figure = PSM_figure
+        self.met_df = met_df
+        self.met_stats_df = met_stats_df
+        self.Met_Ox_fig = Met_Ox_fig
         self.similarity_df = similarity_df
         self.similarity_stats = similarity_stats
         self.similarity_table = similarity_table
@@ -543,267 +579,290 @@ class ResultsViewer:
             command=lambda: show_figure_in_tk(self.root, self.PSM_figure),
             width=25, height = 2
         ).grid(row=1, column=4, padx=4, pady=4) 
+        #################################################################
+        tk.Label(tab_1,
+            text="Methionine Oxidation (%)", width=25, height = 2, font=self.bold_label_font
+            ).grid(row=2, column=0, padx=4, pady=4)  
+        
+        tk.Button(tab_1,
+            text="Methionine Oxidation Dataframe",
+            command=lambda: open_dataframe_window(self.met_df),
+            width=25, height = 2
+        ).grid(row=2, column=1, padx=4, pady=4) 
+        
+        tk.Button(tab_1,
+            text="Methionine Oxidation Stats",
+            command=lambda: open_dataframe_window(self.met_stats_df),
+            width=25, height = 2
+        ).grid(row=2, column=2, padx=4, pady=4)   
+        
+        tk.Button(tab_1,
+            text="Methionine Oxidation Figure",
+            command=lambda: show_figure_in_tk(self.root, self.Met_Ox_fig),
+            width=25, height = 2
+        ).grid(row=2, column=3, padx=4, pady=4) 
+
 
         ##################################################################
         
         tk.Label(tab_1,
             text="Similarity Index", width=25, height = 2, font=self.bold_label_font
-            ).grid(row=2, column=0, padx=4, pady=4) 
+            ).grid(row=3, column=0, padx=4, pady=4) 
         
         
         tk.Button(tab_1,
             text="Similarity Index Dataframe",
             command=lambda: open_dataframe_window(self.similarity_df),
             width=25, height = 2
-        ).grid(row=2, column=1, padx=4, pady=4)   
+        ).grid(row=3, column=1, padx=4, pady=4)   
         
         tk.Button(tab_1,
             text="Similarity Index Stats",
             command=lambda: open_dataframe_window(self.similarity_stats),
             width=25, height = 2
-        ).grid(row=2, column=2, padx=4, pady=4)
+        ).grid(row=3, column=2, padx=4, pady=4)
          
         tk.Button(tab_1,
             text="Similarity Figure", width=25, height = 2,
             command=lambda: show_figure_in_tk(self.root, self.similarity_plot)
-        ).grid(row=2, column=3, padx=4, pady=4 )
+        ).grid(row=3, column=3, padx=4, pady=4 )
         
         ###############################################################
         
         tk.Label(tab_1,
             text="AA Composition", width=25, height = 2, font=self.bold_label_font
-            ).grid(row=3, column=0, padx=4, pady=4) 
+            ).grid(row=4, column=0, padx=4, pady=4) 
         
         tk.Button(tab_1,
             text="AA Composition Dataframe", width=25, height = 2,
             command=lambda: open_dataframe_window(self.AA_df)
-        ).grid(row=3, column=1, padx=4, pady=4 ) 
+        ).grid(row=4, column=1, padx=4, pady=4 ) 
 
         tk.Button(tab_1,
             text="AA Stats Dataframe", width=25, height = 2,
             command=lambda: open_dataframe_window(self.AA_stats_df)
-        ).grid(row=3, column=2, padx=4, pady=4 )
+        ).grid(row=4, column=2, padx=4, pady=4 )
 
         tk.Button(tab_1,
             text="AA Composition Figure", width=25, height = 2,
             command=lambda: show_figure_in_tk(self.root, self.AA_figure)
-        ).grid(row=3, column=3, padx=4, pady=4 )
+        ).grid(row=4, column=3, padx=4, pady=4 )
 
         tk.Button(tab_1,
             text="AA Stats Figure", width=25, height = 2,
             command=lambda: show_figure_in_tk(self.root, self.AA_stats_figure)
-        ).grid(row=3, column=4, padx=4, pady=4 )
+        ).grid(row=4, column=4, padx=4, pady=4 )
 
         ################################################################
         
         tk.Label(tab_1,
             text="AA Type", width=25, height = 2, font=self.bold_label_font
-            ).grid(row=4, column=0, padx=4, pady=4)        
+            ).grid(row=5, column=0, padx=4, pady=4)        
         
         tk.Button(tab_1,
             text="Open AA Type Dataframe", width=25, height = 2,
             command=lambda: open_dataframe_window(self.AA_type_df)
-        ).grid(row=4, column=1, padx=4, pady=4 )
+        ).grid(row=5, column=1, padx=4, pady=4 )
 
         tk.Button(tab_1,
             text="AA Type Stats Dataframe", width=25, height = 2,
             command=lambda: open_dataframe_window(self.AA_type_stats_df)
-        ).grid(row=4, column=2, padx=4, pady=4 )
+        ).grid(row=5, column=2, padx=4, pady=4 )
 
         tk.Button(tab_1,
             text="AA Type Figure", width=25, height = 2,
             command=lambda: show_figure_in_tk(self.root, self.AA_type_figure)
-        ).grid(row=4, column=3, padx=4, pady=4 )
+        ).grid(row=5, column=3, padx=4, pady=4 )
 
 
         tk.Button(tab_1,
             text="AA Type Stats Figure", width=25, height = 2,
             command=lambda: show_figure_in_tk(self.root, self.AA_type_stats_figure)
-        ).grid(row=4, column=4, padx=4, pady=4 )
+        ).grid(row=5, column=4, padx=4, pady=4 )
         
         ##############################################
 
         tk.Label(tab_1,
             text="Missed Cleavages", width=25, height = 2, font=self.bold_label_font
-            ).grid(row=5, column=0, padx=4, pady=4)        
+            ).grid(row=6, column=0, padx=4, pady=4)        
         
 
         tk.Button(tab_1,
             text="Open Missed Cleavages Dataframe", width=25, height = 2,
             command=lambda: open_dataframe_window(self.missed_cleavages_df)
-        ).grid(row=5, column=1, padx=4, pady=4 )
+        ).grid(row=6, column=1, padx=4, pady=4 )
         
         tk.Button(tab_1,
             text="Missed Cleavages Stats Dataframe", width=25, height = 2,
             command=lambda: open_dataframe_window(self.missed_cleavages_stats_df)
-        ).grid(row=5, column=2, padx=4, pady=4)
+        ).grid(row=6, column=2, padx=4, pady=4)
 
         tk.Button(tab_1,
             text="Missed Cleavages Figure", width=25, height = 2,
             command=lambda: show_figure_in_tk(self.root, self.missed_cleavages_figure)
-        ).grid(row=5, column=3, padx=4, pady=4)
+        ).grid(row=6, column=3, padx=4, pady=4)
         
         ##############################################
         tk.Label(tab_1,
             text="Molecular Weight", width=25, height = 2, font=self.bold_label_font,
-            ).grid(row=6, column=0, padx=4, pady=4)  
+            ).grid(row=7, column=0, padx=4, pady=4)  
 
         
         tk.Button(tab_1,
             text="MW Dataframe", width=25, height = 2,
             command=lambda: open_dataframe_window(self.MW_df)
-        ).grid(row=6, column=1, padx=4, pady=4 )
+        ).grid(row=7, column=1, padx=4, pady=4 )
 
         tk.Button(tab_1,
             text="MW Stats", width=25, height = 2,
             command=lambda: open_dataframe_window(self.MW_stats_df)
-        ).grid(row=6, column=2, padx=4, pady=4 )
+        ).grid(row=7, column=2, padx=4, pady=4 )
 
         tk.Button(tab_1,
             text="MW by Run Figure", width=25, height = 2,
             command=lambda: show_figure_in_tk(self.root, self.MW_by_run_figure)
-        ).grid(row=6, column=3, padx=4, pady=4)
+        ).grid(row=7, column=3, padx=4, pady=4)
 
         tk.Button(tab_1,
             text="MW by Group Figure", width = 25, height = 2,
             command=lambda: show_figure_in_tk(self.root, self.MW_by_group_figure)
-        ).grid(row=6, column=4, padx=4, pady=4)
+        ).grid(row=7, column=4, padx=4, pady=4)
 
         ##############################################
         
         tk.Label(tab_1,
             text="Peptide Length", width=25, height = 2, font=self.bold_label_font
-            ).grid(row=7, column=0, padx=4, pady=4)  
+            ).grid(row=8, column=0, padx=4, pady=4)  
 
 
         tk.Button(tab_1,
             text="Peptide Length Dataframe", width=25, height = 2,
             command=lambda: open_dataframe_window(self.peptide_length_df)
-        ).grid(row=7, column=1, padx=4, pady=4 )
+        ).grid(row=8, column=1, padx=4, pady=4 )
 
         tk.Button(tab_1,
             text="Peptide Length Stats", width=25, height = 2,
             command=lambda: open_dataframe_window(self.peptide_length_stats_df)
-        ).grid(row=7, column=2, padx=4, pady=4 )
+        ).grid(row=8, column=2, padx=4, pady=4 )
 
         tk.Button(tab_1,
             text="Peptide Length by Run Figure", width=25, height = 2,
             command=lambda: show_figure_in_tk(self.root, self.peptide_length_by_run_figure)
-        ).grid(row=7, column=3, padx=4, pady=4)
+        ).grid(row=8, column=3, padx=4, pady=4)
 
         tk.Button(tab_1,
             text="Peptide Length by Group Figure", width = 25, height = 2,
             command=lambda: show_figure_in_tk(self.root, self.peptide_length_by_group_figure)
-        ).grid(row=7, column=4, padx=4, pady=4)
+        ).grid(row=8, column=4, padx=4, pady=4)
 
         ##############################################
         tk.Label(tab_1,
             text="Hydrophobicity", width=25, height = 2, font=self.bold_label_font 
-            ).grid(row=8, column=0, padx=4, pady=4)  
+            ).grid(row=9, column=0, padx=4, pady=4)  
 
 
         tk.Button(tab_1,
             text="Hydrophobicity Dataframe", width=25, height = 2,
             command=lambda: open_dataframe_window(self.hydrophobicity_df)
-        ).grid(row=8, column=1, padx=4, pady=4 )
+        ).grid(row=9, column=1, padx=4, pady=4 )
 
         tk.Button(tab_1,
             text="Hydrophobicity Stats", width=25, height = 2,
             command=lambda: open_dataframe_window(self.hydrophobicity_stats_df)
-        ).grid(row=8, column=2, padx=4, pady=4 )
+        ).grid(row=9, column=2, padx=4, pady=4 )
 
         tk.Button(tab_1,
             text="Hydrophobicity by Run Figure", width=25, height = 2,
             command=lambda: show_figure_in_tk(self.root, self.hydrophobicity_by_run_figure)
-        ).grid(row=8, column=3, padx=4, pady=4)
+        ).grid(row=9, column=3, padx=4, pady=4)
 
         tk.Button(tab_1,
             text="Hydrophobicity by Group Figure", width = 25, height = 2,
             command=lambda: show_figure_in_tk(self.root, self.hydrophobicity_by_group_figure)
-        ).grid(row=8, column=4, padx=4, pady=4)
+        ).grid(row=9, column=4, padx=4, pady=4)
 
 
         ##############################################
         tk.Label(tab_1,
             text="pI (Isoelectric Point)", width=25, height = 2, font=self.bold_label_font 
-            ).grid(row=9, column=0, padx=4, pady=4)  
+            ).grid(row=10, column=0, padx=4, pady=4)  
 
         
         tk.Button(tab_1,
             text="pI Dataframe", width=25, height = 2,
             command=lambda: open_dataframe_window(self.pI_df)
-        ).grid(row=9, column=1, padx=4, pady=4 )
+        ).grid(row=10, column=1, padx=4, pady=4 )
 
         tk.Button(tab_1,
             text="pI Stats", width=25, height = 2,
             command=lambda: open_dataframe_window(self.pI_stats_df)
-        ).grid(row=9, column=2, padx=4, pady=4 )
+        ).grid(row=10, column=2, padx=4, pady=4 )
 
         tk.Button(tab_1,
             text="pI by Run Figure", width=25, height = 2,
             command=lambda: show_figure_in_tk(self.root, self.pI_by_run_figure)
-        ).grid(row=9, column=3, padx=4, pady=4)
+        ).grid(row=10, column=3, padx=4, pady=4)
 
         tk.Button(tab_1,
             text="pI by Group Figure", width = 25, height = 2,
             command=lambda: show_figure_in_tk(self.root, self.pI_by_group_figure)
-        ).grid(row=9, column=4, padx=4, pady=4)
+        ).grid(row=10, column=4, padx=4, pady=4)
 
         ##############################################
         tk.Label(tab_1,
             text="Instability Index", width=25, height = 2, font=self.bold_label_font 
-            ).grid(row=10, column=0, padx=4, pady=4)  
+            ).grid(row=11, column=0, padx=4, pady=4)  
 
         
         tk.Button(tab_1,
             text="Instability Index dataframe", width=25, height = 2,
             command=lambda: open_dataframe_window(self.instability_df)
-        ).grid(row=10, column=1, padx=4, pady=4 )
+        ).grid(row=11, column=1, padx=4, pady=4 )
 
         tk.Button(tab_1,
             text="Instability Index Stats", width=25, height = 2,
             command=lambda: open_dataframe_window(self.instability_stats_df)
-        ).grid(row=10, column=2, padx=4, pady=4 )
+        ).grid(row=11, column=2, padx=4, pady=4 )
 
         tk.Button(tab_1,
             text="Instability Index by Run Figure", width=25, height = 2,
             command=lambda: show_figure_in_tk(self.root, self.instability_by_run_figure)
-        ).grid(row=10, column=3, padx=4, pady=4)
+        ).grid(row=11, column=3, padx=4, pady=4)
 
         tk.Button(tab_1,
             text="Instability Index by Group Figure", width = 25, height = 2,
             command=lambda: show_figure_in_tk(self.root, self.instability_by_group_figure)
-        ).grid(row=10, column=4, padx=4, pady=4)
+        ).grid(row=11, column=4, padx=4, pady=4)
 
         ##############################################
         tk.Label(tab_1,
             text="Propensity", width=25, height = 2, font=self.bold_label_font 
-            ).grid(row=11, column=0, padx=4, pady=4)  
+            ).grid(row=12, column=0, padx=4, pady=4)  
 
         
         tk.Button(tab_1,
             text="Propensity dataframe", width=25, height = 2,
             command=lambda: open_dataframe_window(self.propensity_df)
-        ).grid(row=11, column=1, padx=4, pady=4 )
+        ).grid(row=12, column=1, padx=4, pady=4 )
 
         tk.Button(tab_1,
             text="Propensity Stats", width=25, height = 2,
             command=lambda: open_dataframe_window(self.propensity_stats_df)
-        ).grid(row=11, column=2, padx=4, pady=4 )
+        ).grid(row=12, column=2, padx=4, pady=4 )
 
         tk.Button(tab_1,
             text="Propensity by Run Figure", width=25, height = 2,
             command=lambda: show_figure_in_tk(self.root, self.propensity_by_run_figure)
-        ).grid(row=11, column=3, padx=4, pady=4)
+        ).grid(row=12, column=3, padx=4, pady=4)
 
         tk.Button(tab_1,
             text="Propensity by Group Figure", width = 25, height = 2,
             command=lambda: show_figure_in_tk(self.root, self.propensity_by_group_figure)
-        ).grid(row=11, column=4, padx=4, pady=4)
+        ).grid(row=12, column=4, padx=4, pady=4)
 
         tk.Label(tab_1,
             text="See Tab 2 for more\n data and plots", width=25, height = 2, font=self.bold_label_font 
-        ).grid(row=12, column=0, padx=4, pady=4) 
+        ).grid(row=13, column=0, padx=4, pady=4) 
 
 
 
@@ -1170,7 +1229,7 @@ class ResultsViewer:
         
     ###############################################  
         tk.Label(tab_2,
-            text="Zimm-Bragg parameter s at 20 C", width=30, height = 1, font=self.bold_label_font
+            text="Zimm-Bragg parameters at 20 C", width=30, height = 1, font=self.bold_label_font
             ).grid(row=11, column=0, padx=0, pady=0)  
         
         tk.Button(tab_2,

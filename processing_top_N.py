@@ -72,6 +72,7 @@ def calculate_overall_similarity(app, fasta_df, peptides_input_df, protein_PSM_d
         POI_seq = POI_fasta['prot_seq'].item()
         calculations_df = calculation_alternatives(POI_df, app)
         coverage_df = coverage_df_by_AA(POI_seq, calculations_df)
+        # print(coverage_df)
         sim_matrix = create_similarity_matrix(coverage_df)
         similarity_array[i, :, :] = sim_matrix
         if i % 10 == 0:
@@ -749,7 +750,8 @@ def create_helix_propensity_df(app, POIs_PSM_df, group_dict):
 
 def top_N_processing_pipeline(app, fasta_df, peptide_input_df, 
                 protein_input_df, group_dict, protein_PSM_df,
-                summary_info_df, summary_stats_df, protein_and_peptide_figure, PSM_figure):
+                summary_info_df, summary_stats_df, protein_and_peptide_figure, PSM_figure,
+                met_df, met_stats_df, Met_Ox_fig):
     
     # This allows you to look at all peptides by putting 0 as N value
     if app.processing_method == "top_N" and int(app.N_value) == 0:
@@ -820,12 +822,16 @@ def top_N_processing_pipeline(app, fasta_df, peptide_input_df,
 
         # Create similarity figure   
         # only use first column for plotting
+ 
         similarity_df_1st_column = similarity_df.iloc[:, [0]]
-        # Get the current name of the first column
-        current_first_column_name = similarity_df_1st_column.columns[0]
-        # Rename the column using a dictionary
-        similarity_df_1st_column = similarity_df_1st_column.rename(columns={current_first_column_name: 'Similarity Index'}).reset_index()
-        print(similarity_df_1st_column)
+        similarity_df_1st_column = similarity_df_1st_column.rename(columns={similarity_df_1st_column.columns[0]: "Similarity Index"})
+
+        similarity_df_1st_column.columns.name = None
+
+        similarity_df_1st_column = similarity_df_1st_column.iloc[1:]
+    
+        similarity_df_1st_column = similarity_df_1st_column.reset_index()
+
         similarity_plot = plot_runs_and_stats(df = similarity_df_1st_column, df_2 = similarity_stats_df, 
                                           property = 'Similarity Index')
         # Save the similarity_figure
@@ -1041,6 +1047,8 @@ def top_N_processing_pipeline(app, fasta_df, peptide_input_df,
         # Calculate stats for peptide length
         peptide_length_stats_df = (peptide_length_df.groupby(["group", "pept_len"])["count"]
             .agg(mean="mean", std="std").reset_index())
+        peptide_length_stats_df['std'] = peptide_length_stats_df['std'].fillna(0)
+        
 
 
         # Save the peptide_length_stats_df
@@ -1059,7 +1067,7 @@ def top_N_processing_pipeline(app, fasta_df, peptide_input_df,
         print("peptide_length_by_run_figure has been saved.")
 
         # Plot peptide length by group
-        peptide_length_by_group_figure = plot_peptide_length_by_group(peptide_length_stats_df, group_dict)
+        peptide_length_by_group_figure = plot_peptide_length_by_group(peptide_length_stats_df)
 
         # Save the peptide_length_by_group_figure
         save_figure_unique(peptide_length_by_group_figure, app.results_file_name + "_peptide_length_by_group_figure", 
@@ -1530,6 +1538,9 @@ def top_N_processing_pipeline(app, fasta_df, peptide_input_df,
                                    summary_stats_df, 
                                    protein_and_peptide_figure,
                                    PSM_figure,
+                                   met_df,
+                                   met_stats_df,
+                                   Met_Ox_fig,
                                    similarity_df,
                                    similarity_stats_df,
                                    similarity_table,
