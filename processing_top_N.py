@@ -9,21 +9,7 @@ from AA_index_dict import *
 
 from results_viewer import ResultsViewer
 
-#from utils import calculation_alternatives, create_similarity_matrix, getting_row_means_and_sds, \
-#    make_coverage_plots, save_dataframe_with_counter, coverage_df_by_AA, save_figure_unique, \
-#        create_similarity_matrix, plot_similarity_table, summarize_by_group, plot_runs_and_stats
-
 from utils import *
-
-
-# Make blank plot for unrequested plots
-def old_make_blank_plot():
-    fig, ax = plt.subplots(figsize=(4, 2))
-    ax.text(0.5, 0.5, 'This plot was not requested!', horizontalalignment='center', 
-            verticalalignment='center', fontsize=20, color='black', transform=ax.transAxes)
-    ax.axis('off')
-    return fig
-
 
 # Create dataframe with only peptides from top-N proteins
 def create_POIs_peptide_df(app, protein_PSM_df, peptide_input_df):

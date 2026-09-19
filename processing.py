@@ -31,6 +31,7 @@ def get_peptide_file_names(app):
 
     suffix_map = {
         "Manually Created": "_peptides.csv",
+        "Manually Created no Met Ox": "_peptides.csv",
         "MaxQuant": "_peptides.txt",
         "Proteome Discoverer": "_PeptideGroups.xlsx",
         "MSFragger": "_peptide.tsv"
@@ -59,6 +60,7 @@ def get_peptide_file_names(app):
 def get_protein_file_names(app):
     suffix_map = {
         "Manually Created": "_proteins.csv",
+        "Manually Created no Met Ox": "_proteins.csv",
         "MaxQuant": "_proteinGroups.txt",
         "Proteome Discoverer": "_Proteins.xlsx",
         "MSFragger": "_protein.tsv"
@@ -86,6 +88,7 @@ def get_base_run_file_names(app):
 
     suffix_map = {
         "Manually Created": "_peptides.csv",
+        "Manually Created no Met Ox": "_peptides.csv",
         "MaxQuant": "_peptides.txt",
         "Proteome Discoverer": "_PeptideGroups.xlsx",
         "MSFragger": "_peptide.tsv"
@@ -100,9 +103,6 @@ def get_base_run_file_names(app):
 # ----------------------------
 # SORT BASE RUN FIRST
 # ----------------------------
-
-
-
 
 def sort_base_run_first(app):
     if app.base_run_name == '':
@@ -141,10 +141,6 @@ def import_data(app):
     # print("Finished importing Protein Files")
 
     #return fasta_df #, peptide_input_df, protein_input_df
-
-
-
-
 
 
 
@@ -445,184 +441,3 @@ def initial_processing(app):
 
   ######################################################################
 
-
-
-
-
-
-
-
-
-
-"""
-
-
-# Get Fasta file names alone (# remove path from fasta file names)
-def getting_fasta_file_names(app):
-    fasta_file_names = []
-    for long_fasta_name in app.fasta_files:
-        fasta_file_name_i = long_fasta_name.rsplit("/", 1)[-1]
-        fasta_file_names.append(fasta_file_name_i)
-    app.fasta_file_names = fasta_file_names  # remove path from fasta file names
-    return(app)
-
-
-# Get peptide/protein file names from peptide/protein file names and paths
-def old_get_peptide_file_names(app):
-    peptide_file_names = []
-    peptide_groups = []
-    if app.input_type == "Manually Created":
-        for i in range(0,len(app.peptide_files)):
-            row_i = app.peptide_files[i]
-            file_path_i = row_i['path']
-            file_name_i = file_path_i.rsplit("/", 1)[-1].replace("_peptides.csv", "")
-            peptide_file_names.append(file_name_i)
-            group_i = row_i['group']
-            peptide_groups.append(group_i)
-        app.peptide_file_names = peptide_file_names
-        app.peptide_groups = peptide_groups
-
-        return(app)
-    elif app.input_type == "MaxQuant":
-        for i in range(0,len(app.peptide_files)):
-            row_i = app.peptide_files[i]
-            file_path_i = row_i['path']
-            file_name_i = file_path_i.rsplit("/", 1)[-1].replace("_peptides.txt", "")
-            peptide_file_names.append(file_name_i)
-            group_i = row_i['group']
-            peptide_groups.append(group_i)
-            app.peptide_file_names = peptide_file_names
-            app.peptide_groups = peptide_groups
-            return(app)
-        
-    elif app.input_type == "Proteome Discoverer":
-        for i in range(0,len(app.peptide_files)):
-            row_i = app.peptide_files[i]
-            file_path_i = row_i['path']
-            file_name_i = file_path_i.rsplit("/", 1)[-1].replace("_PeptideGroups.xlsx", "")
-            peptide_file_names.append(file_name_i)
-            group_i = row_i['group']
-            peptide_groups.append(group_i)
-        app.peptide_file_names = peptide_file_names
-        app.peptide_groups = peptide_groups
-        return(app)
-    else:
-        print("Error: Unknown input type for peptide files.")
-        return(app)
-    
-
-
-def old_get_protein_file_names(app):
-    protein_file_names = []
-    if app.input_type == "Manually Created":
-        for long_protein_name in app.protein_files:
-            protein_file_name_i = long_protein_name.rsplit("/", 1)[-1].replace("_proteins.csv", "")
-            protein_file_names.append(protein_file_name_i)
-        app.protein_file_names = protein_file_names
-        return(app)
-    
-    elif app.input_type == "MaxQuant":
-        for long_protein_name in app.protein_files:
-            protein_file_name_i = long_protein_name.rsplit("/", 1)[-1].replace("_proteinGroups.txt", "")
-            protein_file_names.append(protein_file_name_i)
-        app.protein_file_names = protein_file_names
-        return(app)
-    
-    elif app.input_type == "Proteome Discoverer":
-        for long_protein_name in app.protein_files:
-            protein_file_name_i = long_protein_name.rsplit("/", 1)[-1].replace("_Proteins.xlsx", "")
-            protein_file_names.append(protein_file_name_i)
-        app.protein_file_names = protein_file_names
-        return(app)
-
-def old_get_base_run_file_names(app):
-    if app.base_run_file_path == "":
-        app.base_run_file_name = app.peptide_file_names[0]
-        #app.base_run_group = app.peptide_groups[0]
-        return(app)
-    
-    if app.input_type == "Manually Created":
-        app.base_run_name = app.base_run_file_path.rsplit("/", 1)[-1].replace("_peptides.csv", "")
-        return(app)
-    
-    elif app.input_type == "MaxQuant":
-        app.base_run_name = app.base_run_file_path.rsplit("/", 1)[-1].replace("_peptides.txt", "")
-        return(app)
-
-    elif app.input_type == "Proteome Discoverer":
-        app.base_run_name = app.base_run_file_path.rsplit("/", 1)[-1].replace("_PeptideGroups.xlsx", "")
-        return(app)
-
-
-# Make base run is the first element in peptide_file_names, peptide_groups, and peptide_files
-# create a small function to help sort
-def custom_sort_key(item):
-    if item == app.base_run_name:
-        return (-1, item) # Assigns a primary sort key of -1 for 'aaa'
-    else:
-        return (0, item)  # Assigns a primary sort key of 0 for all others
-
-
-def XXX_sort_base_run_first(app):
-    if app.base_run_name == '':
-        return app
-
-    combined = zip(app.peptide_file_names, app.peptide_files, app.peptide_groups)
-
-    base_name = app.base_run_name
-
-    sorted_combined = sorted(combined, key=lambda x: (
-            x[0] != base_name,        # False (0) for base run → comes first
-            x[2] != app.peptide_groups[app.peptide_file_names.index(base_name)],  # base group first
-            x[2] )                     # then alphabetical by group
-    )
-    (app.peptide_file_names, app.peptide_files, app.peptide_groups) = map(list, zip(*sorted_combined))
-    return app
-
-
-
-def old_initial_processing(app):
-    create_results_folder(app)
-    print("Point G")
-   
-    print("Initial processing of input variables")
-
-    # convert top_N and rank to integers
-    app.N_value = int(app.N_value)
-    app.rank = int(app.rank)
-    print("Point H")
-
-    # Getting file names from file_paths
-    app = getting_fasta_file_names(app)
-    print("fasta file names are: ", app.fasta_file_names)
-    app = get_peptide_file_names(app)
-    print("peptide file names are: ", app.peptide_file_names)
-    print("groups are: ", app.peptide_groups)
-    app = get_protein_file_names(app)
-    print("protein file names are: ", app.protein_file_names) 
-    app = get_base_run_file_names(app)
-    print("base run file names are: ", app.base_run_name)
-
-    
-    # Sort 
-    app = sort_base_run_first(app)
-    print()
-    print("After Sorting Base Run First:")
-    print(app.peptide_file_names)
-    print(app.peptide_files)
-    print(app.peptide_groups)
-
-    print("Processing complete.")   
-
-
-def create_results_folder(app):
-    # Create a results folder and subfolder if they don't exist
-    results_path = "./results"  # Define path to folder
-    os.makedirs(results_path, exist_ok=True)
-    results_folder_name = app.results_file_name
-    full_path = results_path + "/" + results_folder_name
-    print(f"Full results file path: {full_path}")
-    os.makedirs(full_path, exist_ok=True)
-    print(f"Folder '{full_path}' created or already exists.")
-          
-"""

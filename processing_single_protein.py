@@ -1,5 +1,6 @@
 import random
 import re
+from tkinter import messagebox
 from utils import calculation_alternatives, create_similarity_matrix, getting_row_means_and_sds, make_coverage_plots, \
     save_dataframe_with_counter, coverage_df_by_AA, save_figure_unique, plot_runs_and_stats
 from results_viewer import ResultsViewer_Single_Protein
@@ -28,10 +29,7 @@ def QC_check_1(df):
 
     # Count NaN values in each column
     nan_counts = df.isnull().sum()
-    # print("Number of NaN values in each column:")
-    #print(f"nan counts in dataframe: {nan_counts}")
     df_nas_in_A = df[df['accession'].isna()]
-    # print(df_nas_in_A)
     return df
 
 
