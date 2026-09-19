@@ -7,7 +7,6 @@ import numpy as np
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
-# from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 # For Data Visualization
 import matplotlib.pyplot as plt
@@ -69,7 +68,7 @@ def truncate_after_Area(col_name):
 def peptide_import_function(app):
     all_peptides_input_df = pd.DataFrame()
     all_mods_input_df = pd.DataFrame()
-    if (app.input_type == "Manually Created"):
+    if (app.input_type == "Manually Created" or app.input_type == "Manually Created no Met Ox"):
         print('"Manually Created" Import Method being used for Peptides.')
         rename_dict = {'Sequence': 'seq', '# PSMs': 'PSM', 'PSMs': 'PSM', 'Protein': 'protein',
                'Sequence': 'seq', 'Seq': 'seq', '# Peptides': 'peptides', 'Peptides': 'peptides',
@@ -84,6 +83,9 @@ def peptide_import_function(app):
             df_i = pd.read_csv(path_name_i['path'])
             #print(df_i.columns)
             df_i.rename(columns = rename_dict, inplace=True)
+            # Add a 'mods' column if it doesn't exist in the DataFrame
+            if 'mods' not in df_i.columns:
+                df_i['mods'] = 'empty' 
             df_i = df_i.reset_index()
             print("Point F: ", df_i.columns)
             df_i = df_i[['seq', 'mods', 'accession', 'intensity', 'PSM']]
@@ -215,7 +217,7 @@ def calc_stats_by_group(df, property):
 
 def protein_import_function(app):
     all_proteins_input_df = pd.DataFrame()
-    if (app.input_type == "Manually Created"):
+    if (app.input_type == "Manually Created" or app.input_type == "Manually Created no Met Ox"):
         counter_i = 0  # zero a counter
         rename_dict = {'# PSMs': 'PSM', 'PSMs': 'PSM', 'MS/MS count': 'PSM',
                'Protein': 'accession', 'Accession': 'accession',
@@ -300,11 +302,6 @@ def protein_import_function(app):
 
 
 
-
-
-
-
-
 def protein_PSM_pivot_and_sort(protein_input_df):
     # Protein_input_df processing.  Pivot and sort decreasing order of abundance based on PSMs.
     # combining each protein into a single row.
@@ -371,7 +368,7 @@ def calculate_std(row, cols):
     return row[cols].std()
 
 # Define a function to perform the t-test for each row
-def calculate_p_value(row, group_1, group_2):
+def old_calculate_p_value(row, group_1, group_2):
     t_statistic, p_value = stats.ttest_ind(row[group_1], row[group_2])
     return p_value
 
@@ -390,6 +387,8 @@ def getting_row_means_and_sds(df, group_dict, use_base_group =True):
         std_column_name = f"std(Group {key})"
         df_out[std_column_name] = df.apply(calculate_std, axis = 1, args = (columns_for_group_i, ))
     # Calculating p-values
+    """
+    # p_values are not used because they would be unadjusted for number of samples
     if len(deep_copy_group_dict) > 1:
         number_of_groups = len(deep_copy_group_dict)
         number_of_comparisons = number_of_groups -1
@@ -410,10 +409,9 @@ def getting_row_means_and_sds(df, group_dict, use_base_group =True):
                 col_name = f'P_value ({key} vs {key_list[0]})'
                 df_out[col_name] = df.apply(calculate_p_value, axis=1, args=(columns_group_A_modified, columns_group_B))
                 #df[col_name] = df.apply(calculate_p_value, axis=1, args=(columns_group_A, columns_group_B))
+    """
     df_out.index = df.index
     return(df_out)
-
-
 
 
 def plots_for_protein_and_peptide_info(df, dict_1):
@@ -601,10 +599,6 @@ def coverage_df_by_AA(POI_seq, df):
 
 
 
-
-
-
-
 ##################################
 
 def make_coverage_plots(coverage_df, app, POI_dict):
@@ -775,75 +769,7 @@ def calculation_alternatives(POI_df, app):
             pivoted_POI_df[element] = 0
     return(pivoted_POI_df) 
 
-
-def really_old_create_similarity_matrix(df):
-    POI_len = len(df)
-    df_calc = df
-    runs_to_compare = df.columns.drop(['AA_pos', 'AA', 'rand'])
-    
-    # Define the dimensions of the DataFrames
-    number_of_rows = len(runs_to_compare)
-    number_of_columns = len(runs_to_compare)   
-
-    # Create a NumPy array filled with ones for the similarity index. 
-    np_similarity = np.ones((number_of_rows, number_of_columns))
-
-    # Convert the NumPy arrays to a Pandas DataFrame
-    df_similarity = pd.DataFrame(np_similarity)
-
-    # Label the rows and columns with sample information.
-    df_similarity.columns = runs_to_compare
-    df_similarity.index = pd.Index(runs_to_compare, name='sample')
-    remaining_runs = list(runs_to_compare.copy())
-    for run_x in runs_to_compare:
-        remaining_runs.pop(0)  # removes the first item from a list.
-        for run_y in remaining_runs:
-            #print(run_x, run_y)
-            x_y_similarity = 1 - (abs(df_calc[run_y] - df_calc[run_x])).sum()/POI_len
-            random_similarity = 1 - (abs(df_calc['rand'] - df_calc[run_x])).sum()/POI_len
-            scaled_x_y_similarity = (x_y_similarity - random_similarity)/(1.0000000001-random_similarity)
-            #print(scaled_x_y_similarity)
-            df_similarity.loc[run_x, run_y] = scaled_x_y_similarity
-            df_similarity.loc[run_y, run_x] = scaled_x_y_similarity 
-    return(df_similarity)
-
-
-def old_create_similarity_matrix(calc_df):
-    POI_len = len(calc_df)
-    calc_df = calc_df.drop(columns = ['AA_pos', 'AA', 'rand'])
-
-    runs_to_compare = list(calc_df.columns)
-    print(runs_to_compare)
-    print(type(runs_to_compare))
-    
-    # Define the dimensions of the DataFrames
-    number_of_rows = len(runs_to_compare)
-    print('number_of_rows: ', number_of_rows)
-    number_of_columns = len(runs_to_compare)
-    
-    # Create a NumPy array filled with ones for the similarity index. 
-    np_similarity = np.ones((number_of_rows, number_of_columns))
-
-    # Convert the NumPy arrays to a Pandas DataFrame
-    df_similarity = pd.DataFrame(np_similarity)
-
-    # Label the rows and columns with sample information.
-    df_similarity.columns = runs_to_compare
-    df_similarity.index = pd.Index(runs_to_compare, name='sample')
-
-    for run_x in runs_to_compare:
-        # Treat each run as a base run, one at a time
-        calc_df['rand_run_x'] = np.random.permutation(calc_df[run_x])
-        for run_y in runs_to_compare:
-            x_y_similarity = 1 - (abs(calc_df[run_y] - calc_df[run_x])).sum()/POI_len
-            random_similarity = 1 - (abs(calc_df['rand_run_x'] - calc_df[run_x])).sum()/POI_len
-            scaled_x_y_similarity = (x_y_similarity - random_similarity)/(1.0000000001-random_similarity)
-
-            df_similarity.loc[run_x, run_y] = scaled_x_y_similarity
-            #df_similarity.loc[run_y, run_x] = scaled_x_y_similarity 
-    return(df_similarity)        
-
-
+   
 def create_similarity_matrix(calc_df):
     POI_len = len(calc_df)
     if POI_len < 10:
@@ -1065,19 +991,10 @@ def plot_similarity_table(df, app, title="Overall Similarity Index", figsize=(8,
 
 
 
-def summarize_by_group(
-    df: pd.DataFrame,
-    group_dict: dict,
-    ref_group=None,
-    assume_equal_variance=True,
-    exclude_columns=None
-):
+def summarize_by_group(df: pd.DataFrame, group_dict: dict, ref_group=None, assume_equal_variance=True, exclude_columns=None):
     """
-    Compute mean, SD, and p-values vs reference group.
+    Compute mean and SD.
     Output: one table per property with groups as rows.
-
-    If a t-test cannot be performed, p-value is set to 1.0.
-    If SD cannot be computed (fewer than 2 values), SD is set to 0.0.
     """
 
     if exclude_columns is None:
@@ -1108,40 +1025,13 @@ def summarize_by_group(
                 sd = values.std(ddof=1)
             else:
                 sd = 0.0
-
-            # Default p-value
-            pval = 1.0
-
-            if group != ref_group:
-                try:
-                    if (
-                        len(ref_vals) >= 2
-                        and len(values) >= 2
-                        and ref_vals.var(ddof=1) > 0
-                        and values.var(ddof=1) > 0
-                    ):
-                        _, pval = ttest_ind(
-                            ref_vals,
-                            values,
-                            equal_var=assume_equal_variance,
-                        )
-                except Exception:
-                    pval = 1.0
-
             rows.append(
-                {
-                    "group": group,
-                    "mean": mean,
-                    "sd": sd,
-                    f"p_value_vs_{ref_group}": pval,
-                }
+                {"group": group, "mean": mean, "sd": sd}
             )
 
         results[prop] = pd.DataFrame(rows).set_index("group")
 
     return results
-
-
 
 
 def plot_runs_and_stats(df, df_2, property):
@@ -1380,56 +1270,6 @@ def plot_peptide_length_by_run(peptide_length_df, group_dict):
 
 
 
-
-def old_plot_peptide_length_by_group(peptide_length_stats_df):
-    fig, ax = plt.subplots(figsize=(8, 5))
-
-    # Get unique groups and peptide lengths
-    groups = peptide_length_stats_df["group"].unique()
-    pept_lens = peptide_length_stats_df["pept_len"].unique()
-
-    # Draw barplot WITHOUT seaborn error bars
-    sns.barplot(
-        data=peptide_length_stats_df,
-        x="pept_len",
-        y="mean",
-        hue="group",
-        errorbar = none,
-        ax=ax
-    )
-
-    # --- Add SD error bars manually ---
-    n_groups = len(groups)
-    bar_width = 0.8 / n_groups  # seaborn default total width ≈ 0.8
-
-    for i, group in enumerate(groups):
-        group_df = peptide_length_df[peptide_length_df["group"] == group]
-
-        x_positions = (
-            np.arange(len(pept_lens))
-            - 0.4
-            + bar_width / 2
-            + i * bar_width
-        )
-
-        ax.errorbar(
-            x=x_positions,
-            y=group_df["mean"],
-            yerr=group_df["std"],
-            fmt="none",
-            ecolor="black",
-            capsize=2,
-            linewidth=0.6
-        )
-
-    ax.set_xlabel("Peptide Length")
-    ax.set_ylabel("Number of Peptides")
-    ax.set_title("Peptide Length Distribution by Group")
-
-    fig.tight_layout()
-    return fig
-
-
 def plot_peptide_length_by_group(peptide_length_stats_df):
     fig, ax = plt.subplots(figsize=(8, 5))
 
@@ -1594,7 +1434,62 @@ def plot_property_by_group(df, property, group_dict, AA_index = False, property_
 
     return(fig)
 
+
 def create_oxMet_df(mods_input_df, group_dict, app): 
+    # invert the group_dict
+    # sample_to_group = {sample: group for group, samples in group_dict.items() for sample in samples}
+    # mods_input_df["group"] = mods_input_df["sample"].map(sample_to_group)
+    all_samples = set(mods_input_df['sample'])
+    ox_Met_df = pd.DataFrame()
+    if (app.input_type == 'Proteome Discoverer') or (app.input_type == 'Manually Created') :   
+        for sample_i in all_samples:
+            sample_i_df = mods_input_df[mods_input_df['sample'] == sample_i]
+            Met_containing_df_i = sample_i_df[sample_i_df['seq'].str.contains('M', na = False)].reset_index()
+            
+            num_of_Met_i = Met_containing_df_i['seq'].str.count("M").sum()
+            mods_only_df_i = Met_containing_df_i[Met_containing_df_i['mods'].str.contains('Oxid', na = False)].reset_index()
+            # The number of oxidized Met 
+            num_of_ox_Met_i = mods_only_df_i["mods"].str.count("1xOxidation").sum() + \
+                2 * mods_only_df_i["mods"].str.count("2xOxidation").sum() +  \
+                3 * mods_only_df_i["mods"].str.count("3xOxidation").sum() 
+            ox_Met_df_i = pd.DataFrame(columns=['sample', 'ox_Met', 'all_Met'])
+            ox_Met_df_i.loc[len(ox_Met_df_i)] = [sample_i, num_of_ox_Met_i, num_of_Met_i]
+            ox_Met_df = pd.concat([ox_Met_df, ox_Met_df_i])
+    if app.input_type == 'MaxQuant': 
+        for sample_i in all_samples:
+            sample_i_df = mods_input_df[mods_input_df['sample'] == sample_i]
+            sample_i_df = mods_input_df[mods_input_df['sample'] == sample_i]
+            sample_i_df['num_Met'] = sample_i_df['seq'].str.count('M')
+            sample_i_df['PSMxMet'] = sample_i_df['PSM'] * sample_i_df['num_Met']
+            sample_i_df['num_oxMet'] = sample_i_df['mods'].notna().astype(int) \
+                + sample_i_df['mods'].str.count(';').fillna(0)
+            sample_i_df['PSMxOxMet'] = sample_i_df['PSM'] * sample_i_df['num_oxMet']
+            num_of_Met_i = sample_i_df['PSMxMet'].sum()
+            num_of_ox_Met_i = sample_i_df['PSMxOxMet'].sum()
+            ox_Met_df_i = pd.DataFrame(columns=['sample', 'ox_Met', 'all_Met'])
+            ox_Met_df_i.loc[len(ox_Met_df_i)] = [sample_i, num_of_ox_Met_i, num_of_Met_i]
+            ox_Met_df = pd.concat([ox_Met_df, ox_Met_df_i])
+    if app.input_type == 'MSFragger': 
+        for sample_i in all_samples:
+            sample_i_df = mods_input_df[mods_input_df['sample'] == sample_i]
+            Met_containing_df_i = sample_i_df[sample_i_df['seq'].str.contains('M', na = False)].reset_index()
+            
+            num_of_Met_i = Met_containing_df_i['seq'].str.count("M").sum()
+            mods_only_df_i = Met_containing_df_i[Met_containing_df_i['seq'].str.contains('M', na = False)].reset_index()
+            # The number of oxidized Met = number of rows of the data frame + number of semicolon (;)
+            num_of_ox_Met_i = mods_only_df_i['mods'].str.count("M").sum()
+            ox_Met_df_i = pd.DataFrame(columns=['sample', 'ox_Met', 'all_Met'])
+            ox_Met_df_i.loc[len(ox_Met_df_i)] = [sample_i, num_of_ox_Met_i, num_of_Met_i]
+            ox_Met_df = pd.concat([ox_Met_df, ox_Met_df_i])
+    else:
+        print("There is a problem with the input type")     
+    # invert the group_dict
+    sample_to_group = {sample: group for group, samples in group_dict.items() for sample in samples}
+    ox_Met_df["group"] = ox_Met_df["sample"].map(sample_to_group)
+    return ox_Met_df
+
+
+def old_create_oxMet_df(mods_input_df, group_dict, app): 
     # invert the group_dict
     # sample_to_group = {sample: group for group, samples in group_dict.items() for sample in samples}
     # mods_input_df["group"] = mods_input_df["sample"].map(sample_to_group)
@@ -1691,16 +1586,6 @@ def plots_for_Met_oxid(met_df):
     axs[1].set_title('Met Oxidation (%)', fontsize=12, weight='bold')
     axs[1].set_xlabel('Group')
     axs[1].set_ylabel('Percent Oxidation of Methionine')
-
-    
-    # -----------------------------
-    # Overall title
-    # -----------------------------
-    fig.suptitle(
-        'Summary Statistics per Sample and Group\n(PSMs)',
-        fontsize=16,
-        weight='bold'
-    )
 
     return fig
 
